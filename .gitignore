@@ -1,3 +1,8 @@
+apify.md
+prd.md
+CLAUDE.md
+documentation
+
 # Logs
 logs
 *.log
@@ -7,10 +12,19 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Dependencies
 node_modules
 dist
 dist-ssr
 *.local
+
+# Environment variables
+.env
+.env.*
+!.env.example
+.env.local
+.env.production.local
+.env.development.local
 
 # Editor directories and files
 .vscode/*
@@ -22,3 +36,51 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Supabase local development
+supabase/
+.supabase/
+
+# Credentials and secrets
+*.key
+*.pem
+*.p12
+*.pfx
+*.crt
+*.cert
+*.p7b
+*.p7c
+*.p7s
+*.spc
+*.p12
+*.pfx
+
+# Database files
+*.sqlite
+*.db
+*.sql
+!INSTAGRAM_DATABASE_SETUP.sql
+!UGC_CONTENT_TABLE.sql
+!FIX_UUID_ISSUE.sql
+!ADD_THUMBNAIL_COLUMN.sql
+
+# Temporary files
+*.tmp
+*.temp
+*.cache
+coverage/
+.nyc_output/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Testing
+coverage/
+.nyc_output/
+*.lcov
