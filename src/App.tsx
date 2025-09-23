@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { Login } from '@/components/Login'
+import { Login } from '@/pages/LoginPage'
 import { UGCDashboard } from '@/components/UGCDashboard'
 import { useAuth } from '@/hooks/useAuth'
 
