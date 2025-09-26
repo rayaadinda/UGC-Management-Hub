@@ -17,8 +17,7 @@ export function UGCDashboard() {
   const [selectedContent, setSelectedContent] = useState<UGCContent | null>(null)
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false)
 
-  // Auto-collapse sidebar on mobile
-  useEffect(() => {
+    useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth < 1024) {
         setIsSidebarCollapsed(true)

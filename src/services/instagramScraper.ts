@@ -1,4 +1,3 @@
-// Supabase client for database operations
 
 export interface InstagramPost {
   id: string
@@ -69,8 +68,7 @@ class InstagramScraperService {
       const data = await response.json()
 
   
-      // Filter posts by hashtag and parse the clean JSON response
-      const posts = this.parseApifyResponse(data, hashtag, count)
+            const posts = this.parseApifyResponse(data, hashtag, count)
 
       if (posts.length === 0) {
         return {
@@ -82,8 +80,7 @@ class InstagramScraperService {
 
       return { success: true, data: posts }
     } catch (error) {
-      console.error('Error fetching Instagram posts from Apify:')
-      return {
+            return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error occurred',
       }
@@ -117,8 +114,7 @@ class InstagramScraperService {
 
       return { success: true, data: allPosts }
     } catch (error) {
-      console.error('Error searching multiple hashtags:')
-      return {
+            return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error occurred',
       }
@@ -157,14 +153,12 @@ class InstagramScraperService {
             posts.push(post)
           }
         } catch (error) {
-          console.warn('Failed to parse Apify item:', error)
-        }
+                  }
       }
 
           return posts
     } catch (error) {
-      console.error('Error parsing Apify response:')
-      return []
+            return []
     }
   }
 
@@ -240,8 +234,7 @@ class InstagramScraperService {
       
       return post
     } catch (error) {
-      console.error('Error parsing Apify item:')
-      return null
+            return null
     }
   }
 
@@ -259,8 +252,7 @@ class InstagramScraperService {
       const contentType = response.headers.get('content-type')
       return contentType?.startsWith('image/') || false
     } catch (error) {
-      console.warn('Failed to validate image URL:', url, error)
-      return false
+            return false
     }
   }
   */

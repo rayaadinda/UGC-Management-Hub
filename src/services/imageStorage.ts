@@ -8,8 +8,7 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey)
 export async function processAndUploadImage(imageUrl: string): Promise<string | null> {
   try {
     
-    // Step 1: Download the image data via our proxy to avoid CORS
-    const proxyUrl = import.meta.env.VITE_IMAGE_PROXY_URL || `${supabaseUrl}/functions/v1/image-proxy`
+        const proxyUrl = import.meta.env.VITE_IMAGE_PROXY_URL || `${supabaseUrl}/functions/v1/image-proxy`
     const encodedImageUrl = encodeURIComponent(imageUrl)
     const fullProxyUrl = `${proxyUrl}?url=${encodedImageUrl}`
 
@@ -20,17 +19,14 @@ export async function processAndUploadImage(imageUrl: string): Promise<string | 
       throw new Error(`Failed to download image via proxy: ${response.status} ${response.statusText}`)
     }
 
-    // Convert response to ArrayBuffer
-    const imageBuffer = await response.arrayBuffer()
+        const imageBuffer = await response.arrayBuffer()
     
-    // Step 2: Generate a unique filename
-    const timestamp = Date.now()
+        const timestamp = Date.now()
     const randomString = Math.random().toString(36).substring(2, 8)
     const filename = `ugc/user_post_${timestamp}_${randomString}.jpg`
 
     
-    // Step 3: Upload to Supabase Storage
-    const { data, error } = await supabase.storage
+        const { data, error } = await supabase.storage
       .from('ugc-images')
       .upload(filename, imageBuffer, {
         contentType: 'image/jpeg',
@@ -42,19 +38,16 @@ export async function processAndUploadImage(imageUrl: string): Promise<string | 
     }
 
     
-    // Step 4: Get the public URL
-    const { data: publicUrlData } = supabase.storage
+        const { data: publicUrlData } = supabase.storage
       .from('ugc-images')
       .getPublicUrl(filename)
 
     const publicUrl = publicUrlData.publicUrl
     
-    // Step 5: Return the new public URL
-    return publicUrl
+        return publicUrl
 
   } catch (error) {
-    console.error('Error processing and uploading image:')
-    return null
+        return null
   }
 }
 
@@ -79,8 +72,7 @@ export async function isProxyAvailable(): Promise<boolean> {
     const response = await fetch(testUrl, { method: 'HEAD' })
     return response.ok
   } catch (error) {
-    console.warn('Image proxy not available:')
-    return false
+        return false
   }
 }
 
@@ -105,8 +97,7 @@ export async function processMultipleImages(urls: string[]): Promise<{success: s
         failed.push(url)
       }
     } catch (error) {
-      console.error('Failed to process image:', url)
-      failed.push(url)
+            failed.push(url)
     }
   }
 
@@ -122,8 +113,7 @@ export async function deleteImageFromStorage(publicUrl: string): Promise<boolean
     const filename = pathParts[pathParts.length - 1]
 
     if (!filename) {
-      console.warn('Could not extract filename from URL')
-      return false
+            return false
     }
 
     const { error } = await supabase.storage
@@ -131,14 +121,12 @@ export async function deleteImageFromStorage(publicUrl: string): Promise<boolean
       .remove([filename])
 
     if (error) {
-      console.error('Failed to delete image from storage:')
-      return false
+            return false
     }
 
         return true
 
   } catch (error) {
-    console.error('Error deleting image from storage:')
-    return false
+        return false
   }
 }

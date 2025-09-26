@@ -53,19 +53,25 @@ export function useUpdateApplicationStatus() {
       status: TDRApplication['status']
       notes?: string
     }) => {
+
+      const updateData: any = { 
+        status,
+        updated_at: new Date().toISOString() 
+      }
+      
+            if (notes !== undefined) {
+        updateData.notes = notes
+      }
+
       const { data, error } = await supabase
         .from('tdr_applications')
-        .update({ 
-          status, 
-          notes,
-          updated_at: new Date().toISOString() 
-        })
+        .update(updateData)
         .eq('id', id)
         .select()
         .single()
 
       if (error) {
-        throw error
+        throw new Error(`Failed to update application status: ${error.message}`)
       }
 
       return data
@@ -73,5 +79,8 @@ export function useUpdateApplicationStatus() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tdr-applications'] })
     },
+    onError: (error) => {
+      throw error
+    }
   })
 }

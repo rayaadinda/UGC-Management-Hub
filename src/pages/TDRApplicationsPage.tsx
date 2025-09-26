@@ -14,11 +14,21 @@ import {
   Calendar,
   MoreHorizontal,
   Filter,
+  ExternalLink,
+  Zap,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
 import {
   Select,
   SelectContent,
@@ -45,6 +55,7 @@ import {
 import { ApplicationDetailDialog } from '@/components/ApplicationDetailDialog'
 import { useTDRApplications, useUpdateApplicationStatus } from '@/hooks/useTDRApplications'
 import { TDRApplication, TDRApplicationFilters } from '@/types'
+import { ProfileScraperPanel } from '@/components/ProfileScraperPanel'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 
@@ -53,6 +64,8 @@ export function TDRApplicationsPage() {
   const [selectedApplication, setSelectedApplication] = useState<TDRApplication | null>(null)
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false)
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false)
+  const [showScraperPanel, setShowScraperPanel] = useState(false)
+  const [scraperApplicant, setScraperApplicant] = useState<TDRApplication | null>(null)
 
   const { data: applications, isLoading, error } = useTDRApplications(filters)
   const updateStatus = useUpdateApplicationStatus()
@@ -60,6 +73,11 @@ export function TDRApplicationsPage() {
   const handleViewDetails = (application: TDRApplication) => {
     setSelectedApplication(application)
     setIsDetailDialogOpen(true)
+  }
+
+  const handleOpenScraper = (application: TDRApplication) => {
+    setScraperApplicant(application)
+    setShowScraperPanel(true)
   }
 
   const handleStatusUpdate = async (id: string, status: TDRApplication['status']) => {
@@ -80,18 +98,18 @@ export function TDRApplicationsPage() {
             <span className="hidden sm:inline">Pending</span>
           </Badge>
         )
-      case 'accepted':
+      case 'approved':
         return (
           <Badge variant="default" className="bg-green-100 text-green-800">
             <CheckCircle className="mr-1 h-3 w-3" />
-            <span className="hidden sm:inline">Accepted</span>
+            <span className="hidden sm:inline">Approved</span>
           </Badge>
         )
-      case 'declined':
+      case 'rejected':
         return (
           <Badge variant="destructive" className="bg-red-100 text-red-800">
             <XCircle className="mr-1 h-3 w-3" />
-            <span className="hidden sm:inline">Declined</span>
+            <span className="hidden sm:inline">Rejected</span>
           </Badge>
         )
       default:
@@ -103,8 +121,8 @@ export function TDRApplicationsPage() {
     ? {
         total: applications.length,
         pending: applications.filter((app) => app.status === 'pending').length,
-        accepted: applications.filter((app) => app.status === 'accepted').length,
-        declined: applications.filter((app) => app.status === 'declined').length,
+        approved: applications.filter((app) => app.status === 'approved').length,
+        rejected: applications.filter((app) => app.status === 'rejected').length,
         withMotorcycle: applications.filter((app) => app.owns_motorcycle === 'Yes').length,
       }
     : null
@@ -143,11 +161,22 @@ export function TDRApplicationsPage() {
             Manage HPZ Crew content creator applications
           </p>
         </div>
-        <Button variant="outline" className="w-full gap-2 sm:w-auto">
-          <FileSpreadsheet className="h-4 w-4" />
-          <span className="hidden sm:inline">Export Data</span>
-          <span className="sm:hidden">Export</span>
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" className="w-full gap-2 sm:w-auto">
+            <FileSpreadsheet className="h-4 w-4" />
+            <span className="hidden sm:inline">Export Data</span>
+            <span className="sm:hidden">Export</span>
+          </Button>
+          <Dialog open={showScraperPanel} onOpenChange={setShowScraperPanel}>
+            <DialogTrigger asChild>
+              <Button variant="outline" className="w-full gap-2 sm:w-auto">
+                <Zap className="h-4 w-4" />
+                <span className="hidden sm:inline">Profile Scraper</span>
+                <span className="sm:hidden">Scraper</span>
+              </Button>
+            </DialogTrigger>
+          </Dialog>
+        </div>
       </div>
 
       {/* Stats Cards - Modern Clean Design */}
@@ -183,7 +212,7 @@ export function TDRApplicationsPage() {
                 <CheckCircle className="h-8 w-8 text-orange-600" />
               </div>
               <div className="space-y-1">
-                <p className="text-3xl font-semibold text-gray-900">{stats.accepted}+</p>
+                <p className="text-3xl font-semibold text-gray-900">{stats.approved}+</p>
                 <p className="text-sm font-medium text-gray-500">Applications Approved</p>
               </div>
             </CardContent>
@@ -195,8 +224,8 @@ export function TDRApplicationsPage() {
                 <XCircle className="h-8 w-8 text-blue-600" />
               </div>
               <div className="space-y-1">
-                <p className="text-3xl font-semibold text-gray-900">{stats.declined}+</p>
-                <p className="text-sm font-medium text-gray-500">Applications Declined</p>
+                <p className="text-3xl font-semibold text-gray-900">{stats.rejected}+</p>
+                <p className="text-sm font-medium text-gray-500">Applications Rejected</p>
               </div>
             </CardContent>
           </Card>
@@ -259,8 +288,8 @@ export function TDRApplicationsPage() {
               <SelectContent>
                 <SelectItem value="all">All Status</SelectItem>
                 <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="accepted">Accepted</SelectItem>
-                <SelectItem value="declined">Declined</SelectItem>
+                <SelectItem value="approved">Approved</SelectItem>
+                <SelectItem value="rejected">Rejected</SelectItem>
               </SelectContent>
             </Select>
             <Select
@@ -395,18 +424,30 @@ export function TDRApplicationsPage() {
                               <>
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem
-                                  onClick={() => handleStatusUpdate(application.id, 'accepted')}
+                                  onClick={() => handleStatusUpdate(application.id, 'approved')}
                                   className="text-green-600"
                                 >
                                   <CheckCircle className="mr-2 h-4 w-4" />
-                                  Accept
+                                  Approve
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
-                                  onClick={() => handleStatusUpdate(application.id, 'declined')}
+                                  onClick={() => handleStatusUpdate(application.id, 'rejected')}
                                   className="text-red-600"
                                 >
                                   <XCircle className="mr-2 h-4 w-4" />
-                                  Decline
+                                  Reject
+                                </DropdownMenuItem>
+                              </>
+                            )}
+                            {application.status === 'approved' && application.instagram_handle && (
+                              <>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem
+                                  onClick={() => handleOpenScraper(application)}
+                                  className="text-blue-600"
+                                >
+                                  <Zap className="mr-2 h-4 w-4" />
+                                  Scrape Profile
                                 </DropdownMenuItem>
                               </>
                             )}
@@ -440,6 +481,32 @@ export function TDRApplicationsPage() {
         open={isDetailDialogOpen}
         onOpenChange={setIsDetailDialogOpen}
       />
+
+      {/* Profile Scraper Dialog */}
+      <Dialog open={showScraperPanel} onOpenChange={setShowScraperPanel}>
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Zap className="h-5 w-5 text-blue-600" />
+              Profile Scraper Management
+            </DialogTitle>
+            <DialogDescription>
+              {scraperApplicant
+                ? `Manage Instagram scraping for ${scraperApplicant.full_name} (@${scraperApplicant.instagram_handle})`
+                : 'Manage Instagram profile scraping jobs'}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="mt-4">
+            <ProfileScraperPanel
+              applicantId={scraperApplicant?.id}
+              applicantName={scraperApplicant?.full_name}
+              instagramHandle={scraperApplicant?.instagram_handle}
+              showControls={true}
+              compact={false}
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

@@ -23,7 +23,6 @@ export interface UGCContentFilters {
 
 export type ContentStatus = UGCContent['status']
 
-// TDR Applications Types
 export interface TDRApplication {
   id: string
   created_at: string
@@ -40,7 +39,7 @@ export interface TDRApplication {
   motorcycle_knowledge: string
   portfolio_url: string
   portfolio_filename: string
-  status: 'pending' | 'accepted' | 'declined'
+  status: 'pending' | 'approved' | 'rejected'
   notes?: string
 }
 

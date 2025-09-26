@@ -1,4 +1,3 @@
-// Apify service for running Instagram scraper actor with specific URLs
 import { InstagramPost } from './instagramScraper'
 
 export interface ApifyActorInput {
@@ -107,7 +106,6 @@ class ApifyActorService {
         },
       }
     } catch (error) {
-      console.error('Error running Apify actor:')
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error occurred',
@@ -140,7 +138,6 @@ class ApifyActorService {
 
       return { success: true, data: posts }
     } catch (error) {
-      console.error('Error fetching dataset items:')
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error occurred',
@@ -194,8 +191,7 @@ class ApifyActorService {
         },
       }
     } catch (error) {
-      console.error('Error starting async actor run:')
-      return {
+            return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error occurred',
       }
@@ -237,8 +233,7 @@ class ApifyActorService {
         },
       }
     } catch (error) {
-      console.error('Error getting task status:')
-      return {
+            return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error occurred',
       }
@@ -255,8 +250,7 @@ class ApifyActorService {
           posts.push(post)
         }
       } catch (error) {
-        console.warn('Failed to parse actor item:', error)
-      }
+              }
     }
 
     return posts
@@ -305,8 +299,7 @@ class ApifyActorService {
 
       return post
     } catch (error) {
-      console.error('Error parsing actor item:', error)
-      return null
+            return null
     }
   }
 

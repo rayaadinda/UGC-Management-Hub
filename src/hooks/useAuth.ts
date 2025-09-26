@@ -6,21 +6,36 @@ export function useAuth() {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    checkAuth()
+    getInitialSession()
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+                
+        setIsAuthenticated(!!session)
+        setIsLoading(false)
+
+        if (event === 'SIGNED_OUT') {
+                  } else if (event === 'TOKEN_REFRESHED') {
+                  }
+      }
+    )
+
+    return () => {
+      subscription.unsubscribe()
+    }
   }, [])
 
-  const checkAuth = async () => {
+  const getInitialSession = async () => {
     try {
       const { data: { session }, error } = await supabase.auth.getSession()
 
       if (error) {
-        throw error
+                setIsAuthenticated(false)
+      } else {
+        setIsAuthenticated(!!session)
       }
-
-      setIsAuthenticated(!!session)
     } catch (error) {
-      console.error('Auth check failed:', error)
-      setIsAuthenticated(false)
+            setIsAuthenticated(false)
     } finally {
       setIsLoading(false)
     }

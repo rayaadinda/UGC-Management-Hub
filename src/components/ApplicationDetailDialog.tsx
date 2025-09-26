@@ -48,7 +48,7 @@ export function ApplicationDetailDialog({
         status,
         notes: notes || undefined,
       })
-      toast.success(`Application ${status} successfully`)
+      toast.success(`Application ${status === 'approved' ? 'approved' : 'rejected'} successfully`)
       onOpenChange(false)
     } catch (error) {
       toast.error('Failed to update application status')
@@ -65,16 +65,16 @@ export function ApplicationDetailDialog({
             Pending Review
           </Badge>
         )
-      case 'accepted':
+      case 'approved':
         return (
           <Badge variant="default" className="bg-green-100 text-green-800">
-            Accepted
+            Approved
           </Badge>
         )
-      case 'declined':
+      case 'rejected':
         return (
           <Badge variant="destructive" className="bg-red-100 text-red-800">
-            Declined
+            Rejected
           </Badge>
         )
       default:
@@ -113,8 +113,7 @@ export function ApplicationDetailDialog({
         </DialogHeader>
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          {/* Personal Information */}
-          <div className="space-y-4">
+                    <div className="space-y-4">
             <h3 className="border-b pb-2 text-lg font-semibold">Personal Information</h3>
 
             <div className="space-y-3">
@@ -136,8 +135,7 @@ export function ApplicationDetailDialog({
             </div>
           </div>
 
-          {/* Social Media */}
-          <div className="space-y-4">
+                    <div className="space-y-4">
             <h3 className="border-b pb-2 text-lg font-semibold">Social Media</h3>
 
             <div className="space-y-3">
@@ -180,8 +178,7 @@ export function ApplicationDetailDialog({
             </div>
           </div>
 
-          {/* Experience & Background */}
-          <div className="space-y-4">
+                    <div className="space-y-4">
             <h3 className="border-b pb-2 text-lg font-semibold">Experience & Background</h3>
 
             <div className="space-y-3">
@@ -212,8 +209,7 @@ export function ApplicationDetailDialog({
             </div>
           </div>
 
-          {/* Content Focus */}
-          <div className="space-y-4">
+                    <div className="space-y-4">
             <h3 className="border-b pb-2 text-lg font-semibold">Content Focus</h3>
 
             {application.content_focus && (
@@ -225,8 +221,7 @@ export function ApplicationDetailDialog({
             )}
           </div>
 
-          {/* Why Partner */}
-          <div className="space-y-4 lg:col-span-2">
+                    <div className="space-y-4 lg:col-span-2">
             <h3 className="border-b pb-2 text-lg font-semibold">Why Partner with TDR Racing?</h3>
 
             {application.why_partner && (
@@ -236,8 +231,7 @@ export function ApplicationDetailDialog({
             )}
           </div>
 
-          {/* Portfolio */}
-          {application.portfolio_url && (
+                    {application.portfolio_url && (
             <div className="space-y-4 lg:col-span-2">
               <h3 className="border-b pb-2 text-lg font-semibold">Portfolio</h3>
 
@@ -256,8 +250,7 @@ export function ApplicationDetailDialog({
             </div>
           )}
 
-          {/* Admin Notes */}
-          <div className="space-y-4 lg:col-span-2">
+                    <div className="space-y-4 lg:col-span-2">
             <h3 className="border-b pb-2 text-lg font-semibold">Admin Notes</h3>
 
             {application.notes && (
@@ -279,25 +272,24 @@ export function ApplicationDetailDialog({
           </div>
         </div>
 
-        {/* Action Buttons */}
-        {application.status === 'pending' && (
+                {application.status === 'pending' && (
           <div className="flex gap-3 border-t pt-6">
             <Button
-              onClick={() => handleStatusUpdate('accepted')}
+              onClick={() => handleStatusUpdate('approved')}
               disabled={isUpdating}
               className="flex-1 bg-green-600 hover:bg-green-700"
             >
               <CheckCircle className="mr-2 h-4 w-4" />
-              Accept Application
+              Approve Application
             </Button>
             <Button
               variant="destructive"
-              onClick={() => handleStatusUpdate('declined')}
+              onClick={() => handleStatusUpdate('rejected')}
               disabled={isUpdating}
               className="flex-1"
             >
               <XCircle className="mr-2 h-4 w-4" />
-              Decline Application
+              Reject Application
             </Button>
           </div>
         )}
