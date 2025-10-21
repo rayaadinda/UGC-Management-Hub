@@ -9,8 +9,7 @@ import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { Loader2, Play, CheckCircle, XCircle, Plus, X, Link, AlertTriangle } from 'lucide-react'
 import { Progress } from '@/components/ui/progress'
-import { useRunApifyActor, useApifyActorStatus, useInstagramUrlList } from '@/hooks/useApifyActor'
-import { ApifyActorTask } from '@/services/apifyActor'
+import { scrapeByHashtags, scrapeByUrls, apifyService } from '@/services/apify'
 
 export function ApifyActorPanel() {
   const { urls, addUrl, removeUrl, clearUrls, isValid } = useInstagramUrlList()

@@ -7,6 +7,7 @@ import { UGCCard } from './UGCCard'
 import { UGCDetailDialog } from './UGCDetailDialog'
 import { InstagramCollectionPage } from '@/pages/InstagramCollectionPage'
 import { TDRApplicationsPage } from '@/pages/TDRApplicationsPage'
+import ReportsPage from '@/pages/ReportsPage'
 import { useUGCContent } from '@/hooks/useUGCContent'
 import { UGCContent, UGCContentFilters } from '@/types'
 
@@ -72,8 +73,8 @@ export function UGCDashboard() {
           isSidebarCollapsed ? 'lg:ml-16' : 'lg:ml-64'
         } ml-0`}
       >
-        {/* Only show this header for UGC content pages, not applications */}
-        {activePage !== 'applications' && activePage !== 'collection' && (
+        {/* Only show this header for UGC content pages, not applications or reports */}
+        {activePage !== 'applications' && activePage !== 'collection' && activePage !== 'reports' && (
           <div className="sticky top-0 z-10 flex-shrink-0 border-b bg-white shadow-sm dark:bg-gray-800">
             <div className="px-4 py-3 sm:px-6 sm:py-4">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -102,8 +103,11 @@ export function UGCDashboard() {
 
           {activePage === 'applications' && <TDRApplicationsPage />}
 
+          {activePage === 'reports' && <ReportsPage />}
+
           {activePage !== 'collection' &&
           activePage !== 'applications' &&
+          activePage !== 'reports' &&
           content &&
           content.length > 0 ? (
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3 xl:grid-cols-4">
@@ -119,7 +123,8 @@ export function UGCDashboard() {
             </div>
           ) : (
             activePage !== 'collection' &&
-            activePage !== 'applications' && (
+            activePage !== 'applications' &&
+            activePage !== 'reports' && (
               <div className="py-12 text-center">
                 <div className="mb-4 text-gray-400">
                   <svg

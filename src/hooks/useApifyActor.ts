@@ -12,9 +12,13 @@ export function useRunApifyActor() {
     mutationFn: async (input: ApifyActorInput) => {
       setProgress({ step: 'Initializing...', percentage: 0 })
       
-      const result = await apifyActorService.runActorWithUrls(input, (progressUpdate) => {
-        setProgress(progressUpdate)
-      })
+      const result = await apifyActorService.scrapeByUrls(
+        input.urls || [],
+        input,
+        (progressUpdate: any) => {
+          setProgress(progressUpdate)
+        }
+      )
 
       if (!result.success) {
         // Enhanced error handling for common issues
@@ -66,7 +70,7 @@ export function useRunApifyActorAsync() {
 
   return useMutation({
     mutationFn: async (input: ApifyActorInput) => {
-      const result = await apifyActorService.runActorAsync(input)
+      const result = await apifyActorService.executeScraping(input)
 
       if (!result.success) {
         // Enhanced error handling for common issues

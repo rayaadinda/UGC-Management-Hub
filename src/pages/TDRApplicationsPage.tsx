@@ -55,7 +55,6 @@ import {
 import { ApplicationDetailDialog } from '@/components/ApplicationDetailDialog'
 import { useTDRApplications, useUpdateApplicationStatus } from '@/hooks/useTDRApplications'
 import { TDRApplication, TDRApplicationFilters } from '@/types'
-import { ProfileScraperPanel } from '@/components/ProfileScraperPanel'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 
@@ -484,7 +483,7 @@ export function TDRApplicationsPage() {
 
       {/* Profile Scraper Dialog */}
       <Dialog open={showScraperPanel} onOpenChange={setShowScraperPanel}>
-        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-h-[90vh] max-w-6xl overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Zap className="h-5 w-5 text-blue-600" />
@@ -496,15 +495,7 @@ export function TDRApplicationsPage() {
                 : 'Manage Instagram profile scraping jobs'}
             </DialogDescription>
           </DialogHeader>
-          <div className="mt-4">
-            <ProfileScraperPanel
-              applicantId={scraperApplicant?.id}
-              applicantName={scraperApplicant?.full_name}
-              instagramHandle={scraperApplicant?.instagram_handle}
-              showControls={true}
-              compact={false}
-            />
-          </div>
+          <div className="mt-4"></div>
         </DialogContent>
       </Dialog>
     </div>

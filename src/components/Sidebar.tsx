@@ -10,6 +10,8 @@ import {
   Menu,
   Database,
   UserCheck,
+  FileText,
+  BarChart3,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -25,8 +27,9 @@ const menuItems = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { id: 'content', label: 'All Content', icon: Image },
   { id: 'approved', label: 'Approved', icon: Filter },
-  { id: 'applications', label: 'Applications', icon: UserCheck }, 
+  { id: 'applications', label: 'Applications', icon: UserCheck },
   { id: 'collection', label: 'Data Collection', icon: Database },
+  { id: 'reports', label: 'Reports', icon: BarChart3 },
   { id: 'settings', label: 'Settings', icon: Settings },
 ]
 
