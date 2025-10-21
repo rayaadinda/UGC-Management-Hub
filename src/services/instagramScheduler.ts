@@ -1,11 +1,6 @@
-import { createClient } from '@supabase/supabase-js'
+import { supabase } from '@/lib/supabase'
 import instagramScraper, { InstagramPost } from './instagramScraper'
 import { processAndUploadImage, needsImageProcessing, isProxyAvailable } from './imageStorage'
-
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-const supabaseServiceKey = import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY || import.meta.env.VITE_SUPABASE_ANON_KEY
-
-const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
 const TARGET_HASHTAGS = [
   'ridetothrive',

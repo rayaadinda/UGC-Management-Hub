@@ -6,13 +6,27 @@ const APIFY_ACTOR_QUERY_KEY = 'apify-actor'
 
 export function useRunApifyActor() {
   const queryClient = useQueryClient()
+  const [progress, setProgress] = useState<{ step: string; percentage: number; current?: number; total?: number } | null>(null)
 
-  return useMutation({
+  const mutation = useMutation({
     mutationFn: async (input: ApifyActorInput) => {
-      const result = await apifyActorService.runActorWithUrls(input)
+      setProgress({ step: 'Initializing...', percentage: 0 })
+      
+      const result = await apifyActorService.runActorWithUrls(input, (progressUpdate) => {
+        setProgress(progressUpdate)
+      })
 
       if (!result.success) {
-        throw new Error(result.error || 'Failed to run Apify actor')
+        // Enhanced error handling for common issues
+        let errorMessage = result.error || 'Failed to run Apify actor'
+        
+        if (errorMessage.includes('no_items') || errorMessage.includes('Empty or private data')) {
+          errorMessage = 'No posts found. This could be due to: 1) Private Instagram account 2) Invalid URLs 3) Posts don\'t exist. Please check the URLs and try again.'
+        } else if (errorMessage.includes('JWT') || errorMessage.includes('401')) {
+          errorMessage = 'Authentication failed. Please check your Apify API token.'
+        }
+        
+        throw new Error(errorMessage)
       }
 
       return result
@@ -28,8 +42,23 @@ export function useRunApifyActor() {
 
       // Invalidate actor queries
       queryClient.invalidateQueries({ queryKey: [APIFY_ACTOR_QUERY_KEY] })
+      
+      // Invalidate UGC content cache to show new posts
+      queryClient.invalidateQueries({ queryKey: ['ugc-content'] })
+      
+      // Clear progress on success
+      setProgress(null)
     },
+    onError: () => {
+      // Clear progress on error
+      setProgress(null)
+    }
   })
+
+  return {
+    ...mutation,
+    progress
+  }
 }
 
 export function useRunApifyActorAsync() {
@@ -40,7 +69,16 @@ export function useRunApifyActorAsync() {
       const result = await apifyActorService.runActorAsync(input)
 
       if (!result.success) {
-        throw new Error(result.error || 'Failed to start async Apify actor')
+        // Enhanced error handling for common issues
+        let errorMessage = result.error || 'Failed to start async Apify actor'
+        
+        if (errorMessage.includes('no_items') || errorMessage.includes('Empty or private data')) {
+          errorMessage = 'No posts found. This could be due to: 1) Private Instagram account 2) Invalid URLs 3) Posts don\'t exist. Please check the URLs and try again.'
+        } else if (errorMessage.includes('JWT') || errorMessage.includes('401')) {
+          errorMessage = 'Authentication failed. Please check your Apify API token.'
+        }
+        
+        throw new Error(errorMessage)
       }
 
       return result
@@ -74,7 +112,6 @@ export function useApifyActorStatus(taskId: string, enabled = false) {
     },
     enabled: enabled && !!taskId,
     refetchInterval: (data) => {
-      // Refetch every 5 seconds if task is still running
       const taskData = data as unknown as ApifyActorTask | undefined
       if (taskData && (taskData.status === 'RUNNING' || taskData.status === 'TIMED_OUT')) {
         return 5000
@@ -88,8 +125,6 @@ export function useApifyActorTasks() {
   return useQuery({
     queryKey: [APIFY_ACTOR_QUERY_KEY, 'tasks'],
     queryFn: async () => {
-      // This would typically fetch from a backend that stores task history
-      // For now, we'll return an empty array
       return [] as ApifyActorTask[]
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
@@ -124,8 +159,18 @@ export function useInstagramUrlValidation() {
           return { isValid: false, error: 'URL is required' }
         }
 
+        // Check if URL is properly formatted
+        try {
+          new URL(url)
+        } catch {
+          return { isValid: false, error: 'Invalid URL format' }
+        }
+
         if (!instagramUrlPattern.test(url) && !profileUrlPattern.test(url)) {
-          return { isValid: false, error: 'Please enter a valid Instagram URL (post, reel, or profile)' }
+          return { 
+            isValid: false, 
+            error: 'Please enter a valid Instagram URL. Supported formats:\n• Post: instagram.com/p/ABC123/\n• Reel: instagram.com/reel/ABC123/\n• Profile: instagram.com/username/' 
+          }
         }
 
         return { isValid: true }

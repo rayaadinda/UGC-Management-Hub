@@ -23,7 +23,6 @@ import {
   Menu,
   Sparkles,
   Zap,
-  Target,
   BarChart3,
   Clock,
   Filter,
@@ -96,16 +95,18 @@ export function InstagramCollectionPage() {
     }
   }
 
-  const stats = lastResult ? {
-    totalPosts: lastResult.postsCollected,
-    newPosts: lastResult.newPostsAdded,
-    status: lastResult.success ? 'success' : 'error',
-    lastRun: lastResult.timestamp,
-    errors: lastResult.errors.length,
-  } : null
+  const stats = lastResult
+    ? {
+        totalPosts: lastResult.postsCollected,
+        newPosts: lastResult.newPostsAdded,
+        status: lastResult.success ? 'success' : 'error',
+        lastRun: lastResult.timestamp,
+        errors: lastResult.errors.length,
+      }
+    : null
 
   return (
-    <div className="container mx-auto p-4 space-y-6 max-w-7xl">
+    <div className="container mx-auto max-w-7xl space-y-6 p-4">
       {/* Header */}
       <div className="space-y-2">
         <div className="flex items-center gap-3">
@@ -121,7 +122,6 @@ export function InstagramCollectionPage() {
         </div>
       </div>
 
-      {/* Mobile Menu Toggle */}
       <div className="lg:hidden">
         <Button
           variant="outline"
@@ -172,10 +172,12 @@ export function InstagramCollectionPage() {
                       ) : (
                         <XCircle className="h-4 w-4 text-red-600" />
                       )}
-                      <span className={cn(
-                        "text-sm font-medium",
-                        stats.status === 'success' ? "text-green-600" : "text-red-600"
-                      )}>
+                      <span
+                        className={cn(
+                          'text-sm font-medium',
+                          stats.status === 'success' ? 'text-green-600' : 'text-red-600'
+                        )}
+                      >
                         {stats.status === 'success' ? 'Success' : 'Failed'}
                       </span>
                     </div>
@@ -201,27 +203,12 @@ export function InstagramCollectionPage() {
           </div>
         )}
 
-        {/* Main Grid */}
         <div className="grid gap-6 lg:grid-cols-3">
-          {/* Left Column - Controls */}
           <div className="space-y-6 lg:col-span-2">
-            {/* Apify Actor Panel */}
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Target className="h-5 w-5" />
-                  Apify Actor Control
-                </CardTitle>
-                <CardDescription>
-                  Manage your Instagram scraping actor and monitor runs
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ApifyActorPanel />
-              </CardContent>
+              <ApifyActorPanel />
             </Card>
 
-            {/* Collection Controls */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -233,7 +220,6 @@ export function InstagramCollectionPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                {/* Mode Selection */}
                 <div className="space-y-3">
                   <Label className="text-base font-semibold">Collection Mode</Label>
                   <div className="grid grid-cols-2 gap-3">
@@ -290,10 +276,11 @@ export function InstagramCollectionPage() {
                       {postCount}
                     </div>
                   </div>
-                  <p className="text-sm text-muted-foreground">Recommended: 20-50 posts to avoid rate limiting</p>
+                  <p className="text-sm text-muted-foreground">
+                    Recommended: 20-50 posts to avoid rate limiting
+                  </p>
                 </div>
 
-                {/* Hashtag Pills */}
                 <div className="space-y-3">
                   <Label className="text-base font-semibold">Available Hashtags</Label>
                   <div className="flex flex-wrap gap-2">
@@ -381,17 +368,23 @@ export function InstagramCollectionPage() {
                     <div className="grid grid-cols-2 gap-3">
                       <div className="rounded-lg bg-blue-50 p-3 text-center">
                         <p className="text-sm text-blue-600">Collected</p>
-                        <p className="text-xl font-bold text-blue-600">{lastResult.postsCollected}</p>
+                        <p className="text-xl font-bold text-blue-600">
+                          {lastResult.postsCollected}
+                        </p>
                       </div>
                       <div className="rounded-lg bg-green-50 p-3 text-center">
                         <p className="text-sm text-green-600">New Posts</p>
-                        <p className="text-xl font-bold text-green-600">{lastResult.newPostsAdded}</p>
+                        <p className="text-xl font-bold text-green-600">
+                          {lastResult.newPostsAdded}
+                        </p>
                       </div>
                     </div>
 
                     {lastResult.errors.length > 0 && (
                       <div className="space-y-2">
-                        <h5 className="text-sm font-medium text-red-700">Errors ({lastResult.errors.length})</h5>
+                        <h5 className="text-sm font-medium text-red-700">
+                          Errors ({lastResult.errors.length})
+                        </h5>
                         <div className="max-h-32 space-y-1 overflow-y-auto">
                           {lastResult.errors.map((err, index) => (
                             <div key={index} className="rounded bg-red-50 p-2 text-xs text-red-600">
@@ -405,7 +398,7 @@ export function InstagramCollectionPage() {
                 )}
 
                 {!lastResult && !error && (
-                  <div className="text-center py-8">
+                  <div className="py-8 text-center">
                     <RefreshCw className="mx-auto h-12 w-12 text-muted-foreground" />
                     <p className="mt-2 text-muted-foreground">No collections yet</p>
                     <p className="text-sm text-muted-foreground">Start collecting to see results</p>
