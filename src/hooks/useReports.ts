@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { reportGenerationService } from '@/services/reportGeneration'
-import { WeeklyReport, WeeklyReportFilters, ReportGenerationConfig } from '@/types'
+import { WeeklyReportFilters, ReportGenerationConfig } from '@/types'
 
 export function useReports(filters?: WeeklyReportFilters) {
   return useQuery({

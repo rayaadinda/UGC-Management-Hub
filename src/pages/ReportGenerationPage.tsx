@@ -1,4 +1,3 @@
-import React from 'react'
 import { ReportGenerator } from '@/components/reports/ReportGenerator'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { FileText, Brain, TrendingUp, Download } from 'lucide-react'

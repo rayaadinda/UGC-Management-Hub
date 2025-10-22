@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { Toaster } from 'sonner'
 import { Login } from '@/pages/LoginPage'
 import { UGCDashboard } from '@/components/UGCDashboard'
 import { useAuth } from '@/hooks/useAuth'
@@ -14,7 +15,7 @@ export default function App() {
         defaultOptions: {
           queries: {
             retry: (failureCount, error: any) => {
-                            if (
+              if (
                 error?.message?.includes('JWT') ||
                 error?.message?.includes('invalid JWT') ||
                 error?.code === 'PGRST301'
@@ -28,7 +29,7 @@ export default function App() {
           },
           mutations: {
             retry: (failureCount, error: any) => {
-                            if (
+              if (
                 error?.message?.includes('JWT') ||
                 error?.message?.includes('invalid JWT') ||
                 error?.code === 'PGRST301'
@@ -66,6 +67,7 @@ export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <UGCDashboard />
+      <Toaster />
     </QueryClientProvider>
   )
 }

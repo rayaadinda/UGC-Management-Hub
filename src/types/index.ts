@@ -92,6 +92,17 @@ export interface ContentPerformanceMetrics {
   period_end: string
   created_at: string
   updated_at: string
+  ugc_content?: {
+    id: string
+    platform: string
+    author_username: string
+    caption: string
+    media_type: string
+    media_url: string
+    hashtags: string[]
+    status: string
+    created_at: string
+  }
 }
 
 export interface AIRecommendation {
@@ -191,4 +202,91 @@ export interface ContentMetricsFilters {
   content_id?: string
   min_performance_score?: number
   category?: string
+}
+
+// Affiliate Sales System Types
+export interface AffiliateSale {
+  id: string
+  affiliate_name: string
+  affiliate_username: string
+  platform: 'tiktok' | 'instagram'
+  content_url: string
+  product_name: string
+  product_category: string
+  sale_amount: number
+  commission_rate: number
+  commission_earned: number
+  sale_date: string
+  status: 'pending' | 'confirmed' | 'paid' | 'cancelled' | 'disputed'
+  customer_id?: string
+  order_id: string
+  click_count: number
+  conversion_rate: number
+  content_views: number
+  engagement_rate: number
+  affiliate_type?: 'brand_ambassador' | 'regular'
+  created_at: string
+  updated_at: string
+}
+
+export interface AffiliateSaleFilters {
+  status?: AffiliateSale['status'] | 'all'
+  platform?: AffiliateSale['platform'] | 'all'
+  affiliate_name?: string
+  product_category?: string
+  affiliate_type?: 'brand_ambassador' | 'regular' | 'all'
+  date_range?: {
+    start: string
+    end: string
+  }
+  min_amount?: number
+  max_amount?: number
+  search?: string
+}
+
+export type AffiliateSaleStatus = AffiliateSale['status']
+
+export interface AffiliateStats {
+  total_sales: number
+  total_commission: number
+  average_order_value: number
+  conversion_rate: number
+  total_clicks: number
+  total_affiliates: number
+  top_performer: AffiliateSale | null
+  monthly_trend: Array<{
+    month: string
+    sales: number
+    commission: number
+    orders: number
+  }>
+  category_performance: Array<{
+    category: string
+    sales: number
+    commission: number
+    orders: number
+  }>
+  affiliate_ranking: Array<{
+    affiliate_name: string
+    affiliate_username: string
+    total_sales: number
+    total_commission: number
+    orders_count: number
+    conversion_rate: number
+  }>
+}
+
+export interface AffiliatePerformance {
+  affiliate_name: string
+  affiliate_username: string
+  total_sales: number
+  total_commission: number
+  orders_count: number
+  average_order_value: number
+  conversion_rate: number
+  click_through_rate: number
+  engagement_rate: number
+  content_count: number
+  trending_status: 'up' | 'down' | 'stable'
+  performance_score: number
 }

@@ -1,17 +1,14 @@
 import { useState } from 'react'
 import {
-  X,
   Mail,
   Phone,
   Instagram,
-  Calendar,
   Bike,
   Trophy,
   FileText,
   ExternalLink,
   CheckCircle,
   XCircle,
-  MessageSquare,
 } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Badge } from '@/components/ui/badge'
@@ -113,7 +110,7 @@ export function ApplicationDetailDialog({
         </DialogHeader>
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-                    <div className="space-y-4">
+          <div className="space-y-4">
             <h3 className="border-b pb-2 text-lg font-semibold">Personal Information</h3>
 
             <div className="space-y-3">
@@ -135,7 +132,7 @@ export function ApplicationDetailDialog({
             </div>
           </div>
 
-                    <div className="space-y-4">
+          <div className="space-y-4">
             <h3 className="border-b pb-2 text-lg font-semibold">Social Media</h3>
 
             <div className="space-y-3">
@@ -178,7 +175,7 @@ export function ApplicationDetailDialog({
             </div>
           </div>
 
-                    <div className="space-y-4">
+          <div className="space-y-4">
             <h3 className="border-b pb-2 text-lg font-semibold">Experience & Background</h3>
 
             <div className="space-y-3">
@@ -209,7 +206,7 @@ export function ApplicationDetailDialog({
             </div>
           </div>
 
-                    <div className="space-y-4">
+          <div className="space-y-4">
             <h3 className="border-b pb-2 text-lg font-semibold">Content Focus</h3>
 
             {application.content_focus && (
@@ -221,7 +218,7 @@ export function ApplicationDetailDialog({
             )}
           </div>
 
-                    <div className="space-y-4 lg:col-span-2">
+          <div className="space-y-4 lg:col-span-2">
             <h3 className="border-b pb-2 text-lg font-semibold">Why Partner with TDR Racing?</h3>
 
             {application.why_partner && (
@@ -231,7 +228,7 @@ export function ApplicationDetailDialog({
             )}
           </div>
 
-                    {application.portfolio_url && (
+          {application.portfolio_url && (
             <div className="space-y-4 lg:col-span-2">
               <h3 className="border-b pb-2 text-lg font-semibold">Portfolio</h3>
 
@@ -250,7 +247,7 @@ export function ApplicationDetailDialog({
             </div>
           )}
 
-                    <div className="space-y-4 lg:col-span-2">
+          <div className="space-y-4 lg:col-span-2">
             <h3 className="border-b pb-2 text-lg font-semibold">Admin Notes</h3>
 
             {application.notes && (
@@ -272,7 +269,7 @@ export function ApplicationDetailDialog({
           </div>
         </div>
 
-                {application.status === 'pending' && (
+        {application.status === 'pending' && (
           <div className="flex gap-3 border-t pt-6">
             <Button
               onClick={() => handleStatusUpdate('approved')}

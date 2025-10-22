@@ -370,19 +370,43 @@ export class AIRecommendationsService {
       const hashtagTrends = data?.reduce((acc, content) => {
         if (platform && content.platform !== platform) return acc
 
-        content.hashtags.forEach(hashtag => {
-          if (!acc[hashtag]) {
-            acc[hashtag] = {
-              hashtag,
-              total_engagement: 0,
-              content_count: 0,
-              recent_growth: 0
-            }
-          }
+        interface UGCContentRow {
+          hashtags: string[] | null
+          caption?: string | null
+          likes_count?: number | null
+          comments_count?: number | null
+          platform?: string | null
+          created_at?: string | null
+        }
 
-          acc[hashtag].total_engagement += content.likes_count + content.comments_count
-          acc[hashtag].content_count += 1
-        })
+        interface HashtagTrend {
+          hashtag: string
+          total_engagement: number
+          content_count: number
+          recent_growth: number
+        }
+
+        const row = content as UGCContentRow
+        if (Array.isArray(row.hashtags)) {
+          const trends = acc as Record<string, HashtagTrend>
+
+          row.hashtags.forEach((hashtag: string) => {
+            if (!trends[hashtag]) {
+              trends[hashtag] = {
+                hashtag,
+                total_engagement: 0,
+                content_count: 0,
+                recent_growth: 0
+              }
+            }
+
+            const likes = typeof row.likes_count === 'number' ? row.likes_count : 0
+            const comments = typeof row.comments_count === 'number' ? row.comments_count : 0
+
+            trends[hashtag].total_engagement += likes + comments
+            trends[hashtag].content_count += 1
+          })
+        }
         return acc
       }, {} as Record<string, any>)
 

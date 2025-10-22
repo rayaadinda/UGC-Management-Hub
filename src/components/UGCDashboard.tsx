@@ -7,6 +7,7 @@ import { UGCCard } from './UGCCard'
 import { UGCDetailDialog } from './UGCDetailDialog'
 import { InstagramCollectionPage } from '@/pages/InstagramCollectionPage'
 import { TDRApplicationsPage } from '@/pages/TDRApplicationsPage'
+import { AffiliateSalesPage } from '@/pages/AffiliateSalesPage'
 import ReportsPage from '@/pages/ReportsPage'
 import { useUGCContent } from '@/hooks/useUGCContent'
 import { UGCContent, UGCContentFilters } from '@/types'
@@ -73,8 +74,8 @@ export function UGCDashboard() {
           isSidebarCollapsed ? 'lg:ml-16' : 'lg:ml-64'
         } ml-0`}
       >
-        {/* Only show this header for UGC content pages, not applications or reports */}
-        {activePage !== 'applications' && activePage !== 'collection' && activePage !== 'reports' && (
+        {/* Only show this header for UGC content pages, not applications, affiliate sales, or reports */}
+        {activePage !== 'applications' && activePage !== 'collection' && activePage !== 'affiliate-sales' && activePage !== 'reports' && (
           <div className="sticky top-0 z-10 flex-shrink-0 border-b bg-white shadow-sm dark:bg-gray-800">
             <div className="px-4 py-3 sm:px-6 sm:py-4">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -103,10 +104,13 @@ export function UGCDashboard() {
 
           {activePage === 'applications' && <TDRApplicationsPage />}
 
+          {activePage === 'affiliate-sales' && <AffiliateSalesPage />}
+
           {activePage === 'reports' && <ReportsPage />}
 
           {activePage !== 'collection' &&
           activePage !== 'applications' &&
+          activePage !== 'affiliate-sales' &&
           activePage !== 'reports' &&
           content &&
           content.length > 0 ? (
@@ -124,6 +128,7 @@ export function UGCDashboard() {
           ) : (
             activePage !== 'collection' &&
             activePage !== 'applications' &&
+            activePage !== 'affiliate-sales' &&
             activePage !== 'reports' && (
               <div className="py-12 text-center">
                 <div className="mb-4 text-gray-400">

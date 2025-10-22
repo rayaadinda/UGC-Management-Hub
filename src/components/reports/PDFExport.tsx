@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -6,9 +6,10 @@ import { Progress } from '@/components/ui/progress'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
-import { Download, FileText, Settings, CheckCircle, AlertCircle, Loader2 } from 'lucide-react'
+import { Download, FileText, Settings, CheckCircle, AlertCircle, Loader2, FileSpreadsheet } from 'lucide-react'
 import { WeeklyReport } from '@/types'
 import { cn } from '@/lib/utils'
+import { pdfExportService } from '@/services/pdfExportService'
 
 interface PDFExportProps {
   report: WeeklyReport
@@ -44,40 +45,81 @@ export function PDFExport({ report, onExportComplete, className }: PDFExportProp
       setExportStatus('generating')
       setExportProgress(0)
 
-      // Simulate PDF generation progress
+      // Simulate progress steps
       const progressSteps = [
-        { step: 'Collecting data', progress: 20 },
-        { step: 'Generating charts', progress: 40 },
-        { step: 'Processing recommendations', progress: 60 },
-        { step: 'Formatting report', progress: 80 },
-        { step: 'Creating PDF', progress: 100 }
+        { step: 'Collecting data', progress: 20, delay: 300 },
+        { step: 'Generating charts', progress: 40, delay: 500 },
+        { step: 'Processing recommendations', progress: 60, delay: 400 },
+        { step: 'Formatting report', progress: 80, delay: 300 },
+        { step: 'Creating PDF', progress: 100, delay: 600 }
       ]
 
-      for (const { progress } of progressSteps) {
-        await new Promise(resolve => setTimeout(resolve, 500))
+      for (const { progress, delay } of progressSteps) {
+        await new Promise(resolve => setTimeout(resolve, delay))
         setExportProgress(progress)
       }
 
-      // Generate PDF URL (in real implementation, this would be a real URL)
-      const pdfUrl = `https://example.com/reports/${report.id}.pdf`
-
-      setExportStatus('completed')
-      if (onExportComplete) {
-        onExportComplete(pdfUrl)
+      // Generate actual PDF based on options
+      if (exportOptions.includeSummary && !exportOptions.includeCharts && !exportOptions.includeRawData) {
+        // Generate summary PDF
+        await pdfExportService.generateSummaryPDF(report)
+      } else if (exportOptions.includeCharts) {
+        // Try to generate visual PDF with charts
+        try {
+          await pdfExportService.generateVisualPDF('report-content', report)
+        } catch (error) {
+          console.warn('Visual PDF generation failed, falling back to standard PDF')
+          await pdfExportService.generateReportPDF(report)
+        }
+      } else {
+        // Generate standard PDF
+        await pdfExportService.generateReportPDF(report)
       }
 
-      // Trigger download
-      const link = document.createElement('a')
-      link.href = pdfUrl
-      link.download = `${report.title.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
+      setExportStatus('completed')
+
+      // Generate a filename for the success message
+      const fileName = `${report.title.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`
+
+      if (onExportComplete) {
+        onExportComplete(fileName)
+      }
 
     } catch (error) {
       console.error('Error exporting PDF:', error)
       setExportStatus('error')
     } finally {
+      setIsExporting(false)
+    }
+  }
+
+  const handleExportCSV = async () => {
+    try {
+      setIsExporting(true)
+      setExportStatus('generating')
+      setExportProgress(50)
+
+      await new Promise(resolve => setTimeout(resolve, 300))
+      await pdfExportService.exportToCSV(report)
+
+      setExportProgress(100)
+      setExportStatus('completed')
+
+      // Generate filename for success message
+      const csvFileName = `${report.title.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.csv`
+
+      setTimeout(() => {
+        setExportStatus('idle')
+        setExportProgress(0)
+        setIsExporting(false)
+        if (onExportComplete) {
+          onExportComplete(csvFileName)
+        }
+      }, 1500)
+
+    } catch (error) {
+      console.error('Error exporting CSV:', error)
+      setExportStatus('error')
       setIsExporting(false)
     }
   }
@@ -317,8 +359,18 @@ export function PDFExport({ report, onExportComplete, className }: PDFExportProp
         </Alert>
       )}
 
-      {/* Export Button */}
-      <div className="flex justify-end">
+      {/* Export Buttons */}
+      <div className="flex flex-col sm:flex-row gap-4 justify-end">
+        <Button
+          variant="outline"
+          onClick={handleExportCSV}
+          disabled={isExporting}
+          size="lg"
+          className="min-w-32"
+        >
+          <FileSpreadsheet className="h-4 w-4 mr-2" />
+          Export CSV
+        </Button>
         <Button
           onClick={handleExport}
           disabled={isExporting}

@@ -1,10 +1,13 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { ReportingDashboard } from '@/components/reports/ReportingDashboard'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { Plus, FileText, BarChart3, Brain, Settings } from 'lucide-react'
+import { Plus, FileText, BarChart3, Brain, Settings, Download } from 'lucide-react'
 import { ReportGenerator } from '@/components/reports/ReportGenerator'
+import { reportGenerationService } from '@/services/reportGeneration'
+import { pdfExportService } from '@/services/pdfExportService'
+import { toast } from 'sonner'
 
 export default function ReportsPage() {
   const [isGeneratorOpen, setIsGeneratorOpen] = useState(false)
@@ -14,6 +17,31 @@ export default function ReportsPage() {
     setGeneratedReportId(reportId)
     setIsGeneratorOpen(false)
     // Refresh the dashboard or navigate to the new report
+  }
+
+  const handleDownloadGeneratedReport = async () => {
+    if (!generatedReportId) {
+      toast.error('No report available to download')
+      return
+    }
+
+    try {
+      toast.loading('Downloading report PDF...', { id: 'download-report' })
+
+      // Get the report data
+      const report = await reportGenerationService.getReport(generatedReportId)
+      if (!report) {
+        toast.error('Report not found', { id: 'download-report' })
+        return
+      }
+
+      // Generate PDF
+      await pdfExportService.generateReportPDF(report)
+      toast.success('Report downloaded successfully!', { id: 'download-report' })
+    } catch (error) {
+      console.error('Error downloading report:', error)
+      toast.error('Failed to download report', { id: 'download-report' })
+    }
   }
 
   return (
@@ -117,7 +145,8 @@ export default function ReportsPage() {
               <Button variant="default" className="bg-green-600 hover:bg-green-700">
                 View Report
               </Button>
-              <Button variant="outline">
+              <Button variant="outline" onClick={handleDownloadGeneratedReport}>
+                <Download className="mr-2 h-4 w-4" />
                 Download PDF
               </Button>
             </div>

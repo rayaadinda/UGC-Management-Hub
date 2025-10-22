@@ -31,6 +31,8 @@ export async function generatePDF(data: PDFData, options: PDFOptions): Promise<s
   // 3. Upload to storage or return as blob
   // 4. Return URL for download
 
+  console.log('Generating PDF with data:', data.title, 'and options:', options)
+
   return new Promise((resolve) => {
     setTimeout(() => {
       const pdfUrl = `https://example.com/reports/${Date.now()}.pdf`

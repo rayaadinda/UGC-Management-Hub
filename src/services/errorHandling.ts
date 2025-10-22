@@ -18,26 +18,16 @@ export interface ProgressUpdate {
 export class ProgressTracker {
   private updates: ProgressUpdate[] = []
   private startTime: number = Date.now()
-  private currentStep: string = ''
-  private currentPercentage = 0
-  private currentTotal: number = 0
-  private lastUpdate = Date.now()
 
   /**
    * Track progress updates
    */
   updateProgress(update: ProgressUpdate): void {
     const now = Date.now()
-    this.lastUpdate = now
 
     // Calculate time-based progress for ongoing operations
     const timeElapsed = (now - this.startTime) / 1000 // ms to seconds
     const estTimeRemaining = this.calculateEstTimeRemaining(timeElapsed, update.percentage)
-
-    this.currentStep = update.step
-    this.currentPercentage = Math.min(100, Math.round(update.percentage))
-    this.currentTotal = update.total || 0
-    this.lastUpdate = now
 
     // Add to updates array
     this.updates.push({
@@ -77,10 +67,6 @@ export class ProgressTracker {
    */
   reset(): void {
     this.startTime = Date.now()
-    this.currentStep = ''
-    this.currentPercentage = 0
-    this.currentTotal = 0
-    this.lastUpdate = Date.now()
     this.updates = []
   }
 

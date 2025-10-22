@@ -266,7 +266,7 @@ export class PerformanceAnalyticsService {
 
       // Aggregate by platform
       const platformStats = data?.reduce((acc, metric) => {
-        const platform = metric.ugc_content?.platform || 'unknown'
+        const platform = (metric as any).ugc_content?.platform || 'unknown'
         if (!acc[platform]) {
           acc[platform] = {
             platform,
@@ -328,8 +328,8 @@ export class PerformanceAnalyticsService {
 
       // Aggregate by creator
       const creatorStats = data?.reduce((acc, metric) => {
-        const creator = metric.ugc_content?.author_username
-        const platform = metric.ugc_content?.platform
+        const creator = (metric as any).ugc_content?.author_username
+        const platform = (metric as any).ugc_content?.platform
 
         if (!creator) return acc
 
@@ -469,8 +469,8 @@ export class PerformanceAnalyticsService {
 
         const csvData = data.map(metric => [
           metric.content_id,
-          metric.ugc_content?.platform || '',
-          metric.ugc_content?.author_username || '',
+          (metric as any).ugc_content?.platform || '',
+          (metric as any).ugc_content?.author_username || '',
           metric.performance_score,
           metric.engagement_rate,
           metric.total_likes,

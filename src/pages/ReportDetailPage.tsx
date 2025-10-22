@@ -1,17 +1,20 @@
-import React, { useState, useEffect } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { useParams } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { ArrowLeft, Download, Share2, Calendar, FileText, Brain, BarChart3, TrendingUp } from 'lucide-react'
+import { ArrowLeft, Download, Share2, Calendar, FileText, Brain, BarChart3, TrendingUp, FileSpreadsheet } from 'lucide-react'
 import { WeeklyReport } from '@/types'
 import { reportGenerationService } from '@/services/reportGeneration'
+import { pdfExportService } from '@/services/pdfExportService'
 import { AIInsights } from '@/components/reports/AIInsights'
 import { MetricsChart, EngagementRateChart, HashtagPerformanceChart, PlatformComparisonChart } from '@/components/reports/MetricsChart'
 import { PDFExport } from '@/components/reports/PDFExport'
 import { format } from 'date-fns'
+import { toast } from 'sonner'
 
 export default function ReportDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -57,7 +60,33 @@ export default function ReportDetailPage() {
 
   const handleExportComplete = (url: string) => {
     console.log('Export completed:', url)
-    // Could show a success notification
+    toast.success('Report exported successfully!')
+  }
+
+  const handleQuickPDFExport = async () => {
+    if (!report) return
+
+    try {
+      toast.loading('Generating PDF report...', { id: 'pdf-export' })
+      await pdfExportService.generateReportPDF(report)
+      toast.success('PDF downloaded successfully!', { id: 'pdf-export' })
+    } catch (error) {
+      console.error('PDF export failed:', error)
+      toast.error('Failed to generate PDF', { id: 'pdf-export' })
+    }
+  }
+
+  const handleQuickCSVExport = async () => {
+    if (!report) return
+
+    try {
+      toast.loading('Generating CSV export...', { id: 'csv-export' })
+      await pdfExportService.exportToCSV(report)
+      toast.success('CSV downloaded successfully!', { id: 'csv-export' })
+    } catch (error) {
+      console.error('CSV export failed:', error)
+      toast.error('Failed to generate CSV', { id: 'csv-export' })
+    }
   }
 
   if (loading) {
@@ -138,9 +167,17 @@ export default function ReportDetailPage() {
           </div>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={() => setShowExport(!showExport)}>
+          <Button variant="outline" onClick={handleQuickCSVExport}>
+            <FileSpreadsheet className="h-4 w-4 mr-2" />
+            CSV
+          </Button>
+          <Button variant="outline" onClick={handleQuickPDFExport}>
             <Download className="h-4 w-4 mr-2" />
-            Export
+            PDF
+          </Button>
+          <Button variant="outline" onClick={() => setShowExport(!showExport)}>
+            <FileText className="h-4 w-4 mr-2" />
+            Advanced
           </Button>
           <Button variant="outline">
             <Share2 className="h-4 w-4 mr-2" />

@@ -1,13 +1,15 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
-import { CalendarIcon, FileText, Download, Plus, TrendingUp, BarChart3, Brain, Filter } from 'lucide-react'
+import { FileText, Download, Plus, TrendingUp, BarChart3, Brain, Filter } from 'lucide-react'
 import { WeeklyReport, WeeklyReportFilters } from '@/types'
 import { reportGenerationService } from '@/services/reportGeneration'
+import { pdfExportService } from '@/services/pdfExportService'
+import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 
 interface ReportingDashboardProps {
@@ -79,10 +81,36 @@ export function ReportingDashboard({ className }: ReportingDashboardProps) {
 
   const handleExportReport = async (reportId: string, format: 'pdf' | 'json') => {
     try {
-      // Implement export functionality
-      console.log(`Exporting report ${reportId} as ${format}`)
+      // Get the report data
+      const report = await reportGenerationService.getReport(reportId)
+      if (!report) {
+        toast.error('Report not found')
+        return
+      }
+
+      toast.loading(`Generating ${format.toUpperCase()} export...`, { id: 'export-report' })
+
+      if (format === 'pdf') {
+        // Generate PDF
+        await pdfExportService.generateReportPDF(report)
+        toast.success('Report PDF downloaded successfully!', { id: 'export-report' })
+      } else if (format === 'json') {
+        // Generate JSON export
+        const jsonData = JSON.stringify(report, null, 2)
+        const blob = new Blob([jsonData], { type: 'application/json' })
+        const url = URL.createObjectURL(blob)
+        const link = document.createElement('a')
+        link.href = url
+        link.download = `${report.title.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.json`
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+        URL.revokeObjectURL(url)
+        toast.success('Report JSON downloaded successfully!', { id: 'export-report' })
+      }
     } catch (error) {
       console.error('Error exporting report:', error)
+      toast.error('Failed to export report', { id: 'export-report' })
     }
   }
 
@@ -95,7 +123,6 @@ export function ReportingDashboard({ className }: ReportingDashboardProps) {
     }
   }
 
-  const recentReports = reports.slice(0, 6)
   const stats = {
     totalReports: reports.length,
     completedReports: reports.filter(r => r.status === 'completed').length,

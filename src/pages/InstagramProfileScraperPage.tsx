@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import {
   Loader2,
-  Users,
   Search,
   Instagram,
   RefreshCw,
@@ -52,7 +51,6 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
-import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 
 interface ScrapingJob {

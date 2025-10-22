@@ -1,22 +1,37 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Calendar } from '@/components/ui/calendar'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { CalendarIcon, FileText, Settings, Download, Brain, CheckCircle, AlertCircle, Clock } from 'lucide-react'
+import {
+  CalendarIcon,
+  FileText,
+  Settings,
+  Download,
+  Brain,
+  CheckCircle,
+  AlertCircle,
+  Clock,
+} from 'lucide-react'
 import { format } from 'date-fns'
 import { ReportGenerationConfig, ReportTemplate } from '@/types'
 import { reportGenerationService } from '@/services/reportGeneration'
-import { templateManagementService } from '@/services/templateManagement'
+import { mockTemplateManagementService } from '@/services/mockTemplateManagement'
+import { pdfExportService } from '@/services/pdfExportService'
 import { cn } from '@/lib/utils'
+import { toast } from 'sonner'
 
 interface ReportGeneratorProps {
   onReportGenerated?: (reportId: string) => void
@@ -28,14 +43,16 @@ export function ReportGenerator({ onReportGenerated, className }: ReportGenerato
     period_start: format(new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd'),
     period_end: format(new Date(), 'yyyy-MM-dd'),
     include_ai_recommendations: true,
-    export_formats: ['interactive']
+    export_formats: ['interactive'],
   })
 
   const [templates, setTemplates] = useState<ReportTemplate[]>([])
   const [selectedTemplate, setSelectedTemplate] = useState<ReportTemplate | null>(null)
   const [isGenerating, setIsGenerating] = useState(false)
   const [generationProgress, setGenerationProgress] = useState(0)
-  const [generationStatus, setGenerationStatus] = useState<'idle' | 'generating' | 'completed' | 'error'>('idle')
+  const [generationStatus, setGenerationStatus] = useState<
+    'idle' | 'generating' | 'completed' | 'error'
+  >('idle')
   const [generatedReportId, setGeneratedReportId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
@@ -45,14 +62,14 @@ export function ReportGenerator({ onReportGenerated, className }: ReportGenerato
 
   const fetchTemplates = async () => {
     try {
-      const data = await templateManagementService.getTemplates()
+      const data = await mockTemplateManagementService.getTemplates()
       setTemplates(data)
 
       // Auto-select default template
-      const defaultTemplate = data.find(t => t.is_default)
+      const defaultTemplate = data.find((t) => t.is_default)
       if (defaultTemplate) {
         setSelectedTemplate(defaultTemplate)
-        setConfig(prev => ({ ...prev, template_id: defaultTemplate.id }))
+        setConfig((prev) => ({ ...prev, template_id: defaultTemplate.id }))
       }
     } catch (error) {
       console.error('Error fetching templates:', error)
@@ -62,11 +79,13 @@ export function ReportGenerator({ onReportGenerated, className }: ReportGenerato
   const handleGenerateReport = async () => {
     if (!config.period_start || !config.period_end) {
       setError('Please select both start and end dates')
+      toast.error('Please select both start and end dates')
       return
     }
 
     if (new Date(config.period_start) >= new Date(config.period_end)) {
       setError('End date must be after start date')
+      toast.error('End date must be after start date')
       return
     }
 
@@ -76,9 +95,14 @@ export function ReportGenerator({ onReportGenerated, className }: ReportGenerato
       setGenerationProgress(0)
       setError(null)
 
+      // Show loading toast with a small delay to ensure it appears
+      setTimeout(() => {
+        toast.loading('Generating your report...', { id: 'generate-report' })
+      }, 100)
+
       // Simulate progress updates
       const progressInterval = setInterval(() => {
-        setGenerationProgress(prev => {
+        setGenerationProgress((prev) => {
           if (prev >= 90) {
             clearInterval(progressInterval)
             return 90
@@ -94,28 +118,61 @@ export function ReportGenerator({ onReportGenerated, className }: ReportGenerato
       setGenerationStatus('completed')
       setGeneratedReportId(report.id)
 
+      // Show success toast with a small delay to ensure it appears properly
+      setTimeout(() => {
+        toast.success('Report generated successfully!', {
+          id: 'generate-report',
+          description: `Report ID: ${report.id}`,
+        })
+      }, 200)
+
       if (onReportGenerated) {
         onReportGenerated(report.id)
       }
     } catch (error) {
       console.error('Error generating report:', error)
       setError(error instanceof Error ? error.message : 'Failed to generate report')
+      toast.error('Failed to generate report. Please try again.', {
+        id: 'generate-report',
+        description: error instanceof Error ? error.message : 'Unknown error occurred',
+      })
       setGenerationStatus('error')
     } finally {
       setIsGenerating(false)
     }
   }
 
-  const handleExport = (format: 'pdf') => {
-    if (generatedReportId) {
-      console.log(`Exporting report ${generatedReportId} as ${format}`)
+  const handleExport = async (format: 'pdf') => {
+    if (!generatedReportId) {
+      toast.error('No report available to download')
+      return
+    }
+
+    try {
+      // Get the report data
+      const report = await reportGenerationService.getReport(generatedReportId)
+      if (!report) {
+        toast.error('Report not found')
+        return
+      }
+
+      toast.loading(`Downloading ${format.toUpperCase()}...`, { id: 'download-report' })
+
+      if (format === 'pdf') {
+        // Generate PDF
+        await pdfExportService.generateReportPDF(report)
+        toast.success('Report downloaded successfully!', { id: 'download-report' })
+      }
+    } catch (error) {
+      console.error('Error downloading report:', error)
+      toast.error('Failed to download report', { id: 'download-report' })
     }
   }
 
   const getStatusIcon = () => {
     switch (generationStatus) {
       case 'generating':
-        return <Clock className="h-5 w-5 text-blue-500 animate-spin" />
+        return <Clock className="h-5 w-5 animate-spin text-blue-500" />
       case 'completed':
         return <CheckCircle className="h-5 w-5 text-green-500" />
       case 'error':
@@ -160,9 +217,7 @@ export function ReportGenerator({ onReportGenerated, className }: ReportGenerato
               <Settings className="h-4 w-4" />
               Basic Settings
             </CardTitle>
-            <CardDescription>
-              Configure your report parameters
-            </CardDescription>
+            <CardDescription>Configure your report parameters</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
@@ -171,7 +226,7 @@ export function ReportGenerator({ onReportGenerated, className }: ReportGenerato
                 id="title"
                 placeholder="Weekly Performance Report"
                 value={config.title || ''}
-                onChange={(e) => setConfig(prev => ({ ...prev, title: e.target.value }))}
+                onChange={(e) => setConfig((prev) => ({ ...prev, title: e.target.value }))}
                 disabled={isGenerating}
               />
             </div>
@@ -182,7 +237,7 @@ export function ReportGenerator({ onReportGenerated, className }: ReportGenerato
                 id="description"
                 placeholder="Optional description for this report..."
                 value={config.description || ''}
-                onChange={(e) => setConfig(prev => ({ ...prev, description: e.target.value }))}
+                onChange={(e) => setConfig((prev) => ({ ...prev, description: e.target.value }))}
                 disabled={isGenerating}
                 rows={3}
               />
@@ -193,8 +248,8 @@ export function ReportGenerator({ onReportGenerated, className }: ReportGenerato
               <Select
                 value={config.template_id || ''}
                 onValueChange={(value) => {
-                  setConfig(prev => ({ ...prev, template_id: value }))
-                  const template = templates.find(t => t.id === value)
+                  setConfig((prev) => ({ ...prev, template_id: value }))
+                  const template = templates.find((t) => t.id === value)
                   setSelectedTemplate(template || null)
                 }}
                 disabled={isGenerating}
@@ -208,7 +263,9 @@ export function ReportGenerator({ onReportGenerated, className }: ReportGenerato
                       <div className="flex items-center gap-2">
                         <span>{template.name}</span>
                         {template.is_default && (
-                          <Badge variant="secondary" className="text-xs">Default</Badge>
+                          <Badge variant="secondary" className="text-xs">
+                            Default
+                          </Badge>
                         )}
                       </div>
                     </SelectItem>
@@ -218,9 +275,9 @@ export function ReportGenerator({ onReportGenerated, className }: ReportGenerato
             </div>
 
             {selectedTemplate && (
-              <div className="p-3 bg-muted rounded-lg">
+              <div className="rounded-lg bg-muted p-3">
                 <p className="text-sm text-muted-foreground">{selectedTemplate.description}</p>
-                <div className="flex flex-wrap gap-1 mt-2">
+                <div className="mt-2 flex flex-wrap gap-1">
                   {selectedTemplate.included_metrics.map((metric) => (
                     <Badge key={metric} variant="outline" className="text-xs">
                       {metric.replace('_', ' ')}
@@ -239,9 +296,7 @@ export function ReportGenerator({ onReportGenerated, className }: ReportGenerato
               <CalendarIcon className="h-4 w-4" />
               Date Range
             </CardTitle>
-            <CardDescription>
-              Select the period for your report
-            </CardDescription>
+            <CardDescription>Select the period for your report</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid gap-4">
@@ -250,7 +305,7 @@ export function ReportGenerator({ onReportGenerated, className }: ReportGenerato
                 <Input
                   type="date"
                   value={config.period_start}
-                  onChange={(e) => setConfig(prev => ({ ...prev, period_start: e.target.value }))}
+                  onChange={(e) => setConfig((prev) => ({ ...prev, period_start: e.target.value }))}
                   disabled={isGenerating}
                 />
               </div>
@@ -260,7 +315,7 @@ export function ReportGenerator({ onReportGenerated, className }: ReportGenerato
                 <Input
                   type="date"
                   value={config.period_end}
-                  onChange={(e) => setConfig(prev => ({ ...prev, period_end: e.target.value }))}
+                  onChange={(e) => setConfig((prev) => ({ ...prev, period_end: e.target.value }))}
                   disabled={isGenerating}
                 />
               </div>
@@ -272,10 +327,10 @@ export function ReportGenerator({ onReportGenerated, className }: ReportGenerato
                   onClick={() => {
                     const today = new Date()
                     const lastWeek = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000)
-                    setConfig(prev => ({
+                    setConfig((prev) => ({
                       ...prev,
                       period_start: format(lastWeek, 'yyyy-MM-dd'),
-                      period_end: format(today, 'yyyy-MM-dd')
+                      period_end: format(today, 'yyyy-MM-dd'),
                     }))
                   }}
                   disabled={isGenerating}
@@ -288,10 +343,10 @@ export function ReportGenerator({ onReportGenerated, className }: ReportGenerato
                   onClick={() => {
                     const today = new Date()
                     const lastMonth = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000)
-                    setConfig(prev => ({
+                    setConfig((prev) => ({
                       ...prev,
                       period_start: format(lastMonth, 'yyyy-MM-dd'),
-                      period_end: format(today, 'yyyy-MM-dd')
+                      period_end: format(today, 'yyyy-MM-dd'),
                     }))
                   }}
                   disabled={isGenerating}
@@ -301,14 +356,12 @@ export function ReportGenerator({ onReportGenerated, className }: ReportGenerato
               </div>
             </div>
 
-            <div className="p-3 bg-blue-50 rounded-lg">
-              <p className="text-sm font-medium text-blue-900">
-                {getPeriodLabel()}
-              </p>
+            <div className="rounded-lg bg-blue-50 p-3">
+              <p className="text-sm font-medium text-blue-900">{getPeriodLabel()}</p>
               <p className="text-xs text-blue-700">
-                {config.period_start && config.period_end &&
-                  `${format(new Date(config.period_start), 'MMM d, yyyy')} - ${format(new Date(config.period_end), 'MMM d, yyyy')}`
-                }
+                {config.period_start &&
+                  config.period_end &&
+                  `${format(new Date(config.period_start), 'MMM d, yyyy')} - ${format(new Date(config.period_end), 'MMM d, yyyy')}`}
               </p>
             </div>
           </CardContent>
@@ -322,9 +375,7 @@ export function ReportGenerator({ onReportGenerated, className }: ReportGenerato
             <Brain className="h-4 w-4" />
             AI & Export Settings
           </CardTitle>
-          <CardDescription>
-            Configure AI recommendations and export options
-          </CardDescription>
+          <CardDescription>Configure AI recommendations and export options</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center space-x-2">
@@ -332,21 +383,19 @@ export function ReportGenerator({ onReportGenerated, className }: ReportGenerato
               id="ai-recommendations"
               checked={config.include_ai_recommendations}
               onCheckedChange={(checked) =>
-                setConfig(prev => ({ ...prev, include_ai_recommendations: checked as boolean }))
+                setConfig((prev) => ({ ...prev, include_ai_recommendations: checked as boolean }))
               }
               disabled={isGenerating}
             />
-            <Label htmlFor="ai-recommendations">
-              Include AI-powered recommendations
-            </Label>
+            <Label htmlFor="ai-recommendations">Include AI-powered recommendations</Label>
           </div>
 
           {config.include_ai_recommendations && selectedTemplate?.ai_recommendations_enabled && (
-            <div className="ml-6 p-3 bg-green-50 rounded-lg">
+            <div className="ml-6 rounded-lg bg-green-50 p-3">
               <p className="text-sm text-green-800">
                 AI will analyze your content and provide actionable insights for improvement.
               </p>
-              <div className="flex flex-wrap gap-1 mt-2">
+              <div className="mt-2 flex flex-wrap gap-1">
                 {selectedTemplate.recommendation_categories.map((category) => (
                   <Badge key={category} variant="outline" className="text-xs">
                     {category.replace('_', ' ')}
@@ -366,14 +415,14 @@ export function ReportGenerator({ onReportGenerated, className }: ReportGenerato
                     checked={config.export_formats.includes(format)}
                     onCheckedChange={(checked) => {
                       if (checked) {
-                        setConfig(prev => ({
+                        setConfig((prev) => ({
                           ...prev,
-                          export_formats: [...prev.export_formats, format]
+                          export_formats: [...prev.export_formats, format],
                         }))
                       } else {
-                        setConfig(prev => ({
+                        setConfig((prev) => ({
                           ...prev,
-                          export_formats: prev.export_formats.filter(f => f !== format)
+                          export_formats: prev.export_formats.filter((f) => f !== format),
                         }))
                       }
                     }}
@@ -420,7 +469,7 @@ export function ReportGenerator({ onReportGenerated, className }: ReportGenerato
       {generationStatus === 'completed' && generatedReportId && (
         <Card className="border-green-200 bg-green-50">
           <CardHeader>
-            <CardTitle className="text-lg text-green-800 flex items-center gap-2">
+            <CardTitle className="flex items-center gap-2 text-lg text-green-800">
               <CheckCircle className="h-5 w-5" />
               Report Generated Successfully
             </CardTitle>
@@ -431,11 +480,11 @@ export function ReportGenerator({ onReportGenerated, className }: ReportGenerato
           <CardContent className="space-y-4">
             <div className="flex gap-2">
               <Button onClick={() => console.log('View report', generatedReportId)}>
-                <FileText className="h-4 w-4 mr-2" />
+                <FileText className="mr-2 h-4 w-4" />
                 View Report
               </Button>
               <Button variant="outline" onClick={() => handleExport('pdf')}>
-                <Download className="h-4 w-4 mr-2" />
+                <Download className="mr-2 h-4 w-4" />
                 Download PDF
               </Button>
             </div>
@@ -453,12 +502,12 @@ export function ReportGenerator({ onReportGenerated, className }: ReportGenerato
         >
           {isGenerating ? (
             <>
-              <Clock className="h-4 w-4 mr-2 animate-spin" />
+              <Clock className="mr-2 h-4 w-4 animate-spin" />
               Generating...
             </>
           ) : (
             <>
-              <FileText className="h-4 w-4 mr-2" />
+              <FileText className="mr-2 h-4 w-4" />
               Generate Report
             </>
           )}
